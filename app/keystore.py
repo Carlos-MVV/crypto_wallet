@@ -12,8 +12,7 @@ from crypto_utils import (
     ARGON_TIME_COST, ARGON_MEM_COST_KIB, ARGON_PARALLELISM, ARGON_SALT_LEN_BYTES
 )
 
-
-
+#                                                 vv Any porque son varios tipos de datos
 def create_keystore(passphrase: str) -> Dict[str, Any]:
     '''
     Crea un nuevo keystore, sin almacenarlo en disco
@@ -23,11 +22,13 @@ def create_keystore(passphrase: str) -> Dict[str, Any]:
     - Cifra la clave privada con AES-256-GCM
     - Devuelve un diccionario del keystore
     '''
-
+    # Toma los pasos de crypto_utils para hacer el diccionario
     private_key_bytes, public_key_bytes = generate_ed25519_keys()
 
     address = derive_address_btc_style(public_key_bytes)
 
+    # La documentación de python (https://docs.python.org/3/library/random.html) dice que no debe usarse random()
+    # para seguridad, urandom si es apto para criptografía (https://docs.python.org/3/library/os.html#os.urandom)
     salt = os.urandom(ARGON_SALT_LEN_BYTES)
 
     aes_key = derive_aes_key(passphrase, salt)
@@ -36,6 +37,7 @@ def create_keystore(passphrase: str) -> Dict[str, Any]:
 
     # Contrucción del diccionario para el Keystore
     keystore: Dict[str, Any]= {
+        #Se podría poner variables en los strings para dinamismo, pero se desfinnieron así para no complicarnos
         "kdf": "Argon2id",
         "kdf_params": {
             "salt_b64":base64.b64encode(salt.decode("utf-8")),
