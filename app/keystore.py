@@ -1,4 +1,4 @@
-import base64
+import time
 import os
 import json
 import base64
@@ -52,7 +52,7 @@ def create_keystore(passphrase: str) -> Dict[str, Any]:
         "ciphertext_b64": base64.b64encode(ciphertext).decode("utf-8"),
         "tag_b64": base64.b64encode(tag).decode("utf-8"),
         "pubkey_b64": base64.b64encode(public_key_bytes).decode("utf-8"),
-        "created": os.path.getmtime,
+        "created": time.time(),
         "scheme": "Ed25519",
         "address": address
     }
