@@ -12,7 +12,7 @@ def time_iso8601() -> str:
 
 def create_transaction(
     from_address: Optional[str], #Puede ir vacío porque se puede llenar en el signer con la keystore
-    to_address: [str],
+    to_address: str,
     value: int | float | str,
     nonce: int,
     gas_limit: Optional[int] = None,
@@ -56,7 +56,7 @@ def create_transaction(
     return transaction
 
 
-def validate_transaction(transaction: Dict[str, Any]) -> None
+def validate_transaction(transaction: Dict[str, Any]) -> None:
     '''
     Verifica que el diccionario cargado tenga los campos correctos
     - Arroja ValueError si falta un campo obligarotio o si es incorrecto, incluyendo campos opcionales 
@@ -83,7 +83,7 @@ def validate_transaction(transaction: Dict[str, Any]) -> None
 
     if "gas_limit" in transaction:
         if not isinstance(transaction["gas_limit"], int) or transaction["gas_limit"] < 0:
-            raise ValueError("Valor de  'gas_limit' inválido o tipo de dato incorrecto, se esperaba un entero >= 0")
+            raise ValueError("Valor de 'gas_limit' inválido o tipo de dato incorrecto, se esperaba un entero >= 0")
 
     if "data_hex" in transaction:
         if not isinstance(transaction["data_hex"], str):
@@ -112,7 +112,7 @@ def json_to_file(transaction: Dict[str, Any], filepath: str) -> None:
         f.write(transaction_to_json(transaction))
 
 
-# Lo mismo para cargar el JSON, una función carga el archivo y otra la convierte a transacción
+# Lo mismo para cargar el JSON, una función carga el archivo y otra lo convierte a transacción
 def file_to_json(filepath: str) -> str:
     '''
     Carga un archivo JSON no canónico desde disco
