@@ -20,3 +20,12 @@ def test_canonical_bytes():
     data = {"z": 3}
     cb = canonical_bytes(data)
     assert cb == canonical_json(data).encode("utf-8")
+
+def test_canonical_json_no_spaces():   # El JSON canónico no debe contener espacios
+    data = {"x": 1, "a": 2}
+    assert " " not in canonical_json(data)
+
+def test_canonical_json_utf8():
+    # Comprobar que caracteres UTF-8 no se escapan
+    data = {"ñ": "á"}
+    assert canonical_json(data) == '{"ñ":"á"}'
