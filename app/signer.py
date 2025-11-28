@@ -26,11 +26,31 @@ def validate_tx(tx: Dict[str, Any]) -> None:
     if not isinstance(tx["to"], str):
         raise TypeError("El campo 'to' debe ser una cadena (dirección).")
 
+    # Validar value como número entero o string numérico
+    value = tx["value"]
+    if isinstance(value, int):
+        pass
+    elif isinstance(value, str) and value.isdigit():
+        pass
+    else:
+        raise ValueError("El campo 'value' debe ser un entero o un string numérico.")  # NUEVO
+
+    # Validar nonce como entero uint64
+    if not isinstance(tx["nonce"], int):
+        raise TypeError("El campo 'nonce' debe ser un entero (uint64).")  # NUEVO
+    if tx["nonce"] < 0:
+        raise ValueError("El campo 'nonce' no puede ser negativo.")        # NUEVO
+
     # Validar timestamp ISO8601
     try:
         datetime.datetime.fromisoformat(tx["timestamp"])
     except Exception:
         raise ValueError("El campo 'timestamp' no está en formato ISO8601.")
+
+
+# ============================================================
+# FUNCIÓN PRINCIPAL: FIRMAR TRANSACCIÓN
+# ============================================================
 
 # ============================================================
 # FUNCIÓN PRINCIPAL: FIRMAR TRANSACCIÓN
@@ -52,7 +72,7 @@ def sign_transaction(
     }
     """
 
-    # Validamos estructura mínima de la transacción
+    # Validar transacción antes de firmar
     validate_tx(tx)
 
     # Cargar keystore y recuperar llaves
@@ -63,7 +83,7 @@ def sign_transaction(
     if not tx.get("from"):
         tx["from"] = address
 
-    # Obtener mensaje canónico
+    # Crear bytes canónicos del mensaje
     message = canonical_bytes(tx)
 
     # Firmar usando Ed25519
