@@ -1,79 +1,108 @@
 # Proyecto 1: Billetera Fría de Criptomonedas (Crypto 2026-1)
 
-[cite_start]Este proyecto es una implementación de una billetera de criptomonedas fría (offline) para un sistema basado en cuentas, como se especifica en el documento del proyecto[cite: 1].
+Este proyecto implementa una billetera fría (offline) para un sistema basado en cuentas, desarrollada desde cero en Python siguiendo estándares criptográficos robustos.
 
 ## Pila Tecnológica
 
-- **Lenguaje:** [Python/TypeScript/Go/Rust]
-- [cite_start]**Esquema de Firma:** Ed25519 [cite: 12, 162]
-- [cite_start]**KDF (Almacén):** Argon2id
-- [cite_start]**Cifrado (Almacén):** AES-256-GCM [cite: 16]
-- [cite_start]**Formato de Dirección:** KECCAK-256(pubkey) [12..] (Estilo Ethereum) [cite: 18]
+- **Lenguaje:** Python 3.10+
+- **Esquema de Firma:** Ed25519 (RFC 8032)
+- **KDF (Derivación de Clave):** Argon2id
+- **Cifrado (Almacén):** AES-256-GCM
+- **Formato de Dirección:** SHA-256 -> RIPEMD-160 (Estilo Bitcoin)
 
 ## Estructura del Repositorio
 
-```
-/mi-crypto-wallet/
+```text
+/crypto_wallet/
 |
-├── /app/             # Código fuente
-├── /tests/           # Pruebas unitarias y vectores "golden"
-├── /docs/            # Documento técnico y borradores
+├── /app/             # Código fuente (Lógica Core)
+├── /tests/           # Pruebas unitarias y vectores dorados
 ├── /inbox/           # Simulación de transacciones recibidas
 ├── /outbox/          # Transacciones firmadas listas para "enviar"
 ├── /verified/        # Transacciones verificadas y válidas
 |
-├── README.md         # Esto
+├── Makefile          # Automatización de comandos
+├── README.md         # Documentación
 └── requirements.txt  # Dependencias
 ```
 
 ## Cómo Construir y Ejecutar
 
-[cite_start][cite: 104]
+Este proyecto utiliza un Makefile para gestionar el entorno virtual y la ejecución automáticamente. No es necesario instalar librerías manualmente.
 
-**1. Instalar Dependencias**
+### 1. Instalación Automática
+
+El siguiente comando crea el entorno virtual (venv) e instala las dependencias:
 
 ```bash
-# Para Python
-pip install -r requirements.txt
+make install
 ```
 
-**2. Ejecutar la Aplicación (CLI)**
+### 2. Uso de la Billetera (CLI)
 
-[cite_start][cite: 81, 94]
+#### A. Inicializar una nueva billetera
+
+Crea un keystore cifrado (wallet.keystore.json).
 
 ```bash
-# (Ejemplo de cómo será)
-# Crear una nueva billetera
-python -m app.cli init
+make init
+```
 
-# Ver tu dirección
-python -m app.cli address
+(Nota: El sistema advertirá si la passphrase es insegura/corta)
 
-# Firmar una transacción
-python -m app.cli sign --to "0x..." --value 100 --nonce 0
+#### B. Ver tu dirección y clave pública
 
-# Verificar una transacción recibida
-python -m app.cli recv --path ./inbox/tx_a_verificar.json
+```bash
+make address
+```
+
+#### C. Firmar una transacción (Enviar)
+
+Crea un archivo firmado en la carpeta /outbox. Usa make run args="..." para pasar los parámetros.
+
+```bash
+make run args="sign --to 0xDestinoEjemplo --value 50.5 --nonce 1"
+```
+
+#### D. Recibir y Verificar una transacción
+
+Lee un archivo JSON desde /inbox, verifica su firma y si es válido lo mueve a /verified.
+
+Primero, simula la recepción copiando un archivo:
+
+```bash
+cp outbox/tx_1.json inbox/transaccion.json
+```
+
+Luego, ejecuta el verificador:
+
+```bash
+make run args="recv --path inbox/transaccion.json"
+```
+
+## Pruebas y Vectores Dorados
+
+El proyecto incluye una suite de pruebas completa que cubre:
+
+1. **Tests Unitarios:** Keygen, cifrado/descifrado, firmado y canonicalización.
+2. **Vectores Dorados (Golden Vectors):** Pruebas con datos estáticos pre-calculados (tests/test_golden.py) para garantizar que la lógica de firma sea determinista y compatible con versiones futuras.
+
+Para ejecutar todas las pruebas automáticamente:
+
+```bash
+make test
 ```
 
 ## Modelo de Amenazas y Limitaciones
 
-- [cite_start]**Modelo de Amenazas (En Alcance):**
-  - Robo del archivo `.keystore.json` (Mitigado por KDF fuerte y cifrado).
-  - Manipulación de transacciones (Mitigado por firma criptográfica).
-  - [cite_start]Ataques de Replay (Mitigado por rastreo de nonce)[cite: 61].
-- [cite_start]**Limitaciones (Fuera de Alcance):** [cite: 107, 115]
-  - Este proyecto no se conecta a ninguna red blockchain real.
-  - No maneja estado de cuenta (balances).
-  - No usa semillas mnemónicas (BIP-39) para la versión base.
+### Modelo de Amenazas (En Alcance)
 
-## Pruebas
+- **Robo de keystore:** Mitigado por cifrado AES-256-GCM y KDF Argon2id (resistente a fuerza bruta GPU).
+- **Manipulación de tx:** Mitigado por firmas Ed25519 sobre JSON canónico.
+- **Replay Attacks:** El verificador mantiene un estado local de nonces (nonce_state.json) para rechazar transacciones antiguas.
 
-[cite_start][cite: 79]
+### Limitaciones (Fuera de Alcance)
 
-Para ejecutar las pruebas:
-
-```bash
-# (Ejemplo)
-pytest
-```
+- No hay conexión a red real (todo es simulación local de archivos).
+- No maneja balances (no verifica si tienes fondos, solo si la firma es válida).
+- El keystore no usa semillas mnemónicas (BIP-39) en esta versión base.
